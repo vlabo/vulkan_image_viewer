@@ -1,0 +1,9 @@
+build/*
+.vscode
+.DS_Store
+.cproject
+.project
+.settings
+thirdparty/vulkan/bin
+thirdparty/vulkan/Frameworks
+thirdparty/vulkan/lib
