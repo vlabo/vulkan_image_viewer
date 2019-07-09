@@ -1,3 +1,6 @@
+# GSL
+#add_subdirectory(gsl-lite)
+target_include_directories(vulkan_image_viewer PRIVATE "gsl-lite/include")
 
 # GLFW
 add_subdirectory(glfw)

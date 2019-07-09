@@ -11,8 +11,8 @@
 class App
 {
 public:
-    App();
-    ~App();
+    App() = default;
+    ~App() = default;
 
     void    run(); // app starting point
 

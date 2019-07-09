@@ -1,8 +1,8 @@
 #include "window.h"
+#include <gsl.hpp>
 
-
-Window::Window() :
-m_window( NULL )
+Window::Window()
+    : m_window(nullptr)
 {
 }
 
@@ -11,61 +11,67 @@ Window::~Window()
     destroy();
 }
 
-void    Window::init( const char* name, int width, int height )
+void Window::init(const char* name, int width, int height)
 {
     destroy();
 
     glfwInit();
-    glfwWindowHint( GLFW_CLIENT_API, GLFW_NO_API );
-    glfwWindowHint( GLFW_RESIZABLE, GLFW_TRUE );
+    glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
+    glfwWindowHint(GLFW_RESIZABLE, GLFW_TRUE);
 
-    m_window = glfwCreateWindow( width, height, name, nullptr, nullptr );
+    m_window = glfwCreateWindow(width, height, name, nullptr, nullptr);
 }
 
-void    Window::destroy()
+void Window::destroy()
 {
-    if( m_window != NULL )
-    {
-        glfwDestroyWindow( m_window );
+    if (m_window != nullptr) {
+        glfwDestroyWindow(m_window);
         glfwTerminate();
-        m_window = NULL;
+        m_window = nullptr;
     }
 }
 
-std::vector<const char*>    Window::getRequiredExtensions()
+std::vector<const char*>
+Window::getRequiredExtensions()
 {
-    if( m_window == NULL )
+    if (m_window == nullptr) {
         return std::vector<const char*>();
+    }
 
     uint32_t glfwExtensionCount = 0;
-    const char** glfwExtensions = glfwGetRequiredInstanceExtensions( &glfwExtensionCount );
-    std::vector<const char*> extensions( glfwExtensions, glfwExtensions + glfwExtensionCount );
+    const char** rawArray = glfwGetRequiredInstanceExtensions(&glfwExtensionCount);
+    gsl::span<const char*> glfwExtensions(rawArray, glfwExtensionCount);
+    std::vector<const char*> extensions(glfwExtensions.begin(), glfwExtensions.end());
     return extensions;
 }
 
-void    Window::processEvents()
+void Window::processEvents()
 {
-    if( m_window == NULL )
+    if (m_window == nullptr) {
         return;
+    }
     glfwPollEvents();
 }
 
-bool    Window::isOpen()
+bool Window::isOpen()
 {
-    if( m_window == NULL )
+    if (m_window == nullptr) {
         return false;
-    return ! glfwWindowShouldClose( m_window );
+    }
+    return !static_cast<bool>(glfwWindowShouldClose(m_window));
 }
 
-VkSurfaceKHR    Window::createSurface( VkInstance instance )
+VkSurfaceKHR Window::createSurface(VkInstance instance)
 {
-    if( m_window == NULL )
-        throw std::runtime_error( "Failed to create VkSurfaceKHR: m_window == NULL." );
+    if (m_window == nullptr) {
+        throw std::runtime_error("Failed to create VkSurfaceKHR: m_window == NULL.");
+    }
     VkSurfaceKHR surface = VK_NULL_HANDLE;
-    VkResult result = glfwCreateWindowSurface( instance, m_window, nullptr, &surface );
+    VkResult result = glfwCreateWindowSurface(instance, m_window, nullptr, &surface);
 
-    if( result != VK_SUCCESS )
-        throw std::runtime_error( "Failed to create VkSurfaceKHR: result != VK_SUCCESS." );
+    if (result != VK_SUCCESS) {
+        throw std::runtime_error("Failed to create VkSurfaceKHR: result != VK_SUCCESS.");
+    }
 
     return surface;
 }

@@ -12,14 +12,16 @@ QueueFamilyIndices findQueueFamilies( vk::PhysicalDevice device, vk::UniqueSurfa
         if (queueFamily.queueCount > 0 && queueFamily.queueFlags &  vk::QueueFlagBits::eGraphics ) 
             indices.graphicsFamily = i;
 
-        VkBool32 presentSupport = false;
+        VkBool32 presentSupport = VK_FALSE;
         device.getSurfaceSupportKHR( i, surface.get(), &presentSupport );
 
-        if (queueFamily.queueCount > 0 && presentSupport)
+        if ( queueFamily.queueCount > 0 && static_cast<bool>( presentSupport ) ) {
             indices.presentFamily = i;
+        }
 
-        if (indices.isComplete()) 
+        if ( indices.isComplete() ) {
             break;
+        }
 
         i++;
     }

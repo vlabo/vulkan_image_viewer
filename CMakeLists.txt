@@ -26,11 +26,35 @@ add_executable(vulkan_image_viewer  "") # MACOSX_BUNDLE
 add_subdirectory(src)
 add_subdirectory(thirdparty)
 
-file(GLOB LIBRARIES "thirdparty/vulkan/lib/*.dylib")
+target_link_libraries(vulkan_image_viewer PUBLIC vulkan vulkan.1 vulkan.1.1.108 MoltenVK glfw)
 
-target_link_libraries(vulkan_image_viewer PUBLIC vulkan HLSL vulkan.1 vulkan.1.1.108 MoltenVK glfw)
+find_program(
+  CLANG_TIDY_EXE
+  NAMES "clang-tidy"
+  DOC "Path to clang-tidy executable"
+  )
+if(NOT CLANG_TIDY_EXE)
+  message(STATUS "clang-tidy not found.")
+else()
+  message(STATUS "clang-tidy found: ${CLANG_TIDY_EXE}")
+  set(DO_CLANG_TIDY "${CLANG_TIDY_EXE}" "-checks=*,-clang-analyzer-alpha.*,-fuchsia-default-arguments")
+endif()
+
+set_target_properties(
+  vulkan_image_viewer PROPERTIES
+  CXX_STANDARD 17
+  CXX_STANDARD_REQUIRED ON
+  COMPILE_FLAGS "${WARNING_FLAGS}"
+)
 
 
+
+if(CLANG_TIDY_EXE)
+  set_target_properties(
+    vulkan_image_viewer PROPERTIES
+    CXX_CLANG_TIDY "${DO_CLANG_TIDY}"
+  )
+endif()
 
 include(cmake/googletest.cmake)
 fetch_googletest(
