@@ -20,6 +20,8 @@ private:
     bool checkDeviceExtensionSupport(vk::PhysicalDevice& device);
     void createDevice();
     void createSwapChain();
+	void printAvaliableExtensions();
+	void printAvaliableLayers();
 
     vk::SurfaceFormatKHR chooseSwapSurfaceFormat(const std::vector<vk::SurfaceFormatKHR>& availableFormats);
     vk::PresentModeKHR chooseSwapPresentMode(const std::vector<vk::PresentModeKHR>& availablePresentModes);

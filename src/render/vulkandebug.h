@@ -4,6 +4,10 @@
 #include <sstream>
 #include <vulkan/vulkan.hpp>
 
+#ifdef _WIN32
+#include <Windows.h>
+#endif
+
 PFN_vkCreateDebugReportCallbackEXT  pfnVkCreateDebugReportCallbackEXT;
 PFN_vkDestroyDebugReportCallbackEXT pfnVkDestroyDebugReportCallbackEXT;
 

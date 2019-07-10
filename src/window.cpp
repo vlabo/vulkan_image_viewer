@@ -1,5 +1,5 @@
 #include "window.h"
-#include <gsl.hpp>
+#include <stdexcept>
 
 Window::Window()
     : m_window(nullptr)
@@ -39,9 +39,11 @@ Window::getRequiredExtensions()
     }
 
     uint32_t glfwExtensionCount = 0;
-    const char** rawArray = glfwGetRequiredInstanceExtensions(&glfwExtensionCount);
-    gsl::span<const char*> glfwExtensions(rawArray, glfwExtensionCount);
-    std::vector<const char*> extensions(glfwExtensions.begin(), glfwExtensions.end());
+    const char** glfwExtensions = glfwGetRequiredInstanceExtensions(&glfwExtensionCount);
+	if (glfwExtensions == nullptr || glfwExtensionCount == 0) {
+		return {};
+	}
+    std::vector<const char*> extensions(glfwExtensions, glfwExtensions + glfwExtensionCount);
     return extensions;
 }
 

@@ -6,4 +6,3 @@ build/*
 .settings
 thirdparty/vulkan/bin
 thirdparty/vulkan/Frameworks
-thirdparty/vulkan/lib

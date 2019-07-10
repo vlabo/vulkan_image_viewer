@@ -1,12 +1,7 @@
-# GSL
-#add_subdirectory(gsl-lite)
-target_include_directories(vulkan_image_viewer PRIVATE "gsl-lite/include")
-
 # GLFW
 add_subdirectory(glfw)
 target_include_directories(vulkan_image_viewer PRIVATE "glfw/include")
 
 # Vulkan
 target_include_directories(vulkan_image_viewer PRIVATE "vulkan/include")
-target_link_directories(vulkan_image_viewer PRIVATE "vulkan/lib")
-target_link_directories(vulkan_image_viewer PRIVATE "/usr/local/lib")
+target_link_directories(vulkan_image_viewer PRIVATE "vulkan/lib/windows")

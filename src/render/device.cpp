@@ -1,7 +1,11 @@
+#define NOMINMAX
+
 #include "device.h"
 #include "utils.h"
 
-#include <gsl.hpp>
+#include <algorithm>
+#include <limits>
+
 #include <set>
 
 #ifndef NDEBUG
@@ -10,19 +14,22 @@
 constexpr std::array<const char*, 2> debugExtensions = {
     VK_EXT_DEBUG_UTILS_EXTENSION_NAME, VK_EXT_DEBUG_REPORT_EXTENSION_NAME
 };
-constexpr std::array<const char*, 2> debugLayers = {
+constexpr std::array<const char*, 1> debugLayers = {
     "VK_LAYER_KHRONOS_validation"
 };
 #endif
 
-constexpr std::array<const char*, 2> deviceExtensions = {
+constexpr std::array<const char*, 1> deviceExtensions = {
     VK_KHR_SWAPCHAIN_EXTENSION_NAME
 };
 
 void Device::initLibrary(std::vector<const char*> extensions)
 {
+
     std::vector<const char*> layers;
 #ifndef NDEBUG
+	printAvaliableExtensions();
+	printAvaliableLayers();
     layers.insert(layers.end(), debugLayers.begin(), debugLayers.end());
     extensions.insert(extensions.end(), debugExtensions.begin(), debugExtensions.end());
 #endif
@@ -41,6 +48,22 @@ void Device::initDevice(VkSurfaceKHR surface)
     initPhysicalDevice(m_instance);
     createDevice();
     createSwapChain();
+}
+
+void Device::printAvaliableExtensions()
+{
+	std::cout << "Extensions:\n";
+	std::vector<vk::ExtensionProperties> allEx = vk::enumerateInstanceExtensionProperties();
+	for( const auto& ext : allEx )
+		std::cout << ext.extensionName << '\n';
+}
+
+void Device::printAvaliableLayers()
+{
+	std::cout << "Layers:\n";
+	std::vector<vk::LayerProperties> layerProperties = vk::enumerateInstanceLayerProperties();
+	for( const auto& ley : layerProperties )
+		std::cout << ley.layerName << '\n';
 }
 
 vk::SurfaceFormatKHR Device::chooseSwapSurfaceFormat(const std::vector<vk::SurfaceFormatKHR>& availableFormats)
