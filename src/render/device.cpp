@@ -28,8 +28,8 @@ void Device::initLibrary(std::vector<const char*> extensions)
 
     std::vector<const char*> layers;
 #ifndef NDEBUG
-	printAvaliableExtensions();
-	printAvaliableLayers();
+    printAvaliableExtensions();
+    printAvaliableLayers();
     layers.insert(layers.end(), debugLayers.begin(), debugLayers.end());
     extensions.insert(extensions.end(), debugExtensions.begin(), debugExtensions.end());
 #endif
@@ -48,23 +48,25 @@ void Device::initDevice(VkSurfaceKHR surface)
     initPhysicalDevice(m_instance);
     createDevice();
     createSwapChain();
-	createImageViews();
+    createImageViews();
 }
 
 void Device::printAvaliableExtensions()
 {
-	std::cout << "Extensions:\n";
-	std::vector<vk::ExtensionProperties> allEx = vk::enumerateInstanceExtensionProperties();
-	for( const auto& ext : allEx )
-		std::cout << ext.extensionName << '\n';
+    std::cout << "Extensions:\n";
+    std::vector<vk::ExtensionProperties> allEx = vk::enumerateInstanceExtensionProperties();
+    for (const auto& ext : allEx) {
+        std::cout << ext.extensionName << '\n';
+    }
 }
 
 void Device::printAvaliableLayers()
 {
-	std::cout << "Layers:\n";
-	std::vector<vk::LayerProperties> layerProperties = vk::enumerateInstanceLayerProperties();
-	for( const auto& ley : layerProperties )
-		std::cout << ley.layerName << '\n';
+    std::cout << "Layers:\n";
+    std::vector<vk::LayerProperties> layerProperties = vk::enumerateInstanceLayerProperties();
+    for (const auto& ley : layerProperties) {
+        std::cout << ley.layerName << '\n';
+    }
 }
 
 vk::SurfaceFormatKHR Device::chooseSwapSurfaceFormat(const std::vector<vk::SurfaceFormatKHR>& availableFormats)
@@ -113,7 +115,7 @@ void Device::createSwapChain()
     vk::SurfaceFormatKHR imageFormat = chooseSwapSurfaceFormat(swapChainSupport.formats);
     vk::PresentModeKHR presentMode = chooseSwapPresentMode(swapChainSupport.presentModes);
     m_swapChainExtent = chooseSwapExtent(swapChainSupport.capabilities);
-	m_swapChainImageFormat = imageFormat.format;
+    m_swapChainImageFormat = imageFormat.format;
 
     uint32_t imageCount = swapChainSupport.capabilities.minImageCount + 1;
 
@@ -152,22 +154,22 @@ void Device::createSwapChain()
 
 void Device::createImageViews()
 {
-	m_swapChainImageViews.reserve( m_swapChainImages.size() );
-	for( size_t i = 0; i < m_swapChainImages.size(); i++) {
-		vk::ImageViewCreateInfo createInfo;
-		createInfo.setImage(m_swapChainImages[i])
-				  .setViewType(vk::ImageViewType::e2D)
-				  .setFormat(m_swapChainImageFormat);
-		// createInfo.setComponents(vk::ComponentMapping()); this is set by default
-		vk::ImageSubresourceRange subresoruceRange;
-		subresoruceRange.setBaseMipLevel(0)
-						.setLevelCount(1)
-						.setBaseArrayLayer(0)
-						.setLayerCount(1);
-		createInfo.setSubresourceRange(subresoruceRange);
+    m_swapChainImageViews.reserve(m_swapChainImages.size());
+    for (size_t i = 0; i < m_swapChainImages.size(); i++) {
+        vk::ImageViewCreateInfo createInfo;
+        createInfo.setImage(m_swapChainImages[i])
+            .setViewType(vk::ImageViewType::e2D)
+            .setFormat(m_swapChainImageFormat);
+        // createInfo.setComponents(vk::ComponentMapping()); this is set by default
+        vk::ImageSubresourceRange subresourceRange;
+        subresourceRange.setBaseMipLevel(0)
+            .setLevelCount(1)
+            .setBaseArrayLayer(0)
+            .setLayerCount(1);
+        createInfo.setSubresourceRange(subresourceRange);
 
-		m_swapChainImageViews.push_back(m_device->createImageViewUnique(createInfo));
-	}
+        m_swapChainImageViews.push_back(m_device->createImageViewUnique(createInfo));
+    }
 }
 
 void Device::initRenderer() {}

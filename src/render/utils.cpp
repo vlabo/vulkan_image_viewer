@@ -1,25 +1,25 @@
 #include "utils.h"
 
-QueueFamilyIndices findQueueFamilies( vk::PhysicalDevice device, vk::UniqueSurfaceKHR& surface )
+QueueFamilyIndices findQueueFamilies(vk::PhysicalDevice device, vk::UniqueSurfaceKHR& surface)
 {
     QueueFamilyIndices indices;
 
     std::vector<vk::QueueFamilyProperties> queueFamilies = device.getQueueFamilyProperties();
 
     int i = 0;
-    for (const auto& queueFamily : queueFamilies) 
-    {
-        if (queueFamily.queueCount > 0 && queueFamily.queueFlags &  vk::QueueFlagBits::eGraphics ) 
+    for (const auto& queueFamily : queueFamilies) {
+        if (queueFamily.queueCount > 0 && queueFamily.queueFlags & vk::QueueFlagBits::eGraphics) {
             indices.graphicsFamily = i;
+        }
 
         VkBool32 presentSupport = VK_FALSE;
-        device.getSurfaceSupportKHR( i, surface.get(), &presentSupport );
+        device.getSurfaceSupportKHR(i, surface.get(), &presentSupport);
 
-        if ( queueFamily.queueCount > 0 && static_cast<bool>( presentSupport ) ) {
+        if (queueFamily.queueCount > 0 && static_cast<bool>(presentSupport)) {
             indices.presentFamily = i;
         }
 
-        if ( indices.isComplete() ) {
+        if (indices.isComplete()) {
             break;
         }
 
@@ -29,12 +29,13 @@ QueueFamilyIndices findQueueFamilies( vk::PhysicalDevice device, vk::UniqueSurfa
     return indices;
 }
 
-SwapChainSupportDetails querySwapChainSupport( vk::PhysicalDevice device, vk::UniqueSurfaceKHR& surface ) {
+SwapChainSupportDetails querySwapChainSupport(vk::PhysicalDevice device, vk::UniqueSurfaceKHR& surface)
+{
     SwapChainSupportDetails details;
 
-    details.capabilities    = device.getSurfaceCapabilitiesKHR  ( surface.get() );
-    details.formats         = device.getSurfaceFormatsKHR       ( surface.get() );
-    details.presentModes    = device.getSurfacePresentModesKHR  ( surface.get() );
+    details.capabilities = device.getSurfaceCapabilitiesKHR(surface.get());
+    details.formats = device.getSurfaceFormatsKHR(surface.get());
+    details.presentModes = device.getSurfacePresentModesKHR(surface.get());
 
     return details;
 }

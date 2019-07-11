@@ -26,8 +26,8 @@ add_executable(vulkan_image_viewer  "") # MACOSX_BUNDLE
 add_subdirectory(src)
 add_subdirectory(thirdparty)
 
-if(MACOS)
-target_link_libraries(vulkan_image_viewer PUBLIC vulkan vulkan.1 vulkan.1.1.108 MoltenVK glfw)
+if(APPLE)
+target_link_libraries(vulkan_image_viewer PUBLIC  vulkan.1 MoltenVK glfw)
 elseif(CMAKE_CL_64)
 target_link_libraries(vulkan_image_viewer PUBLIC vulkan-1.lib glfw)
 endif()
@@ -59,16 +59,15 @@ if(CLANG_TIDY_EXE)
   )
 endif()
 
-#include(cmake/googletest.cmake)
-#fetch_googletest(
-#    ${PROJECT_SOURCE_DIR}/cmake
-#    ${PROJECT_BINARY_DIR}/googletest
-#    )
-
+include(cmake/googletest.cmake)
+fetch_googletest(
+    ${PROJECT_SOURCE_DIR}/cmake
+    ${PROJECT_BINARY_DIR}/googletest
+    )
 
 # enable testing
-#enable_testing()
+enable_testing()
 
 
 # define tests
-#add_subdirectory(tests)
+add_subdirectory(tests)

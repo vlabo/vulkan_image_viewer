@@ -40,9 +40,9 @@ Window::getRequiredExtensions()
 
     uint32_t glfwExtensionCount = 0;
     const char** glfwExtensions = glfwGetRequiredInstanceExtensions(&glfwExtensionCount);
-	if (glfwExtensions == nullptr || glfwExtensionCount == 0) {
-		return {};
-	}
+    if (glfwExtensions == nullptr || glfwExtensionCount == 0) {
+        return {};
+    }
     std::vector<const char*> extensions(glfwExtensions, glfwExtensions + glfwExtensionCount);
     return extensions;
 }
