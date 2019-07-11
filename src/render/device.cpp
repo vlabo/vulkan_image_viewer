@@ -48,6 +48,7 @@ void Device::initDevice(VkSurfaceKHR surface)
     initPhysicalDevice(m_instance);
     createDevice();
     createSwapChain();
+	createImageViews();
 }
 
 void Device::printAvaliableExtensions()
@@ -111,7 +112,8 @@ void Device::createSwapChain()
 
     vk::SurfaceFormatKHR imageFormat = chooseSwapSurfaceFormat(swapChainSupport.formats);
     vk::PresentModeKHR presentMode = chooseSwapPresentMode(swapChainSupport.presentModes);
-    vk::Extent2D extent = chooseSwapExtent(swapChainSupport.capabilities);
+    m_swapChainExtent = chooseSwapExtent(swapChainSupport.capabilities);
+	m_swapChainImageFormat = imageFormat.format;
 
     uint32_t imageCount = swapChainSupport.capabilities.minImageCount + 1;
 
@@ -125,7 +127,7 @@ void Device::createSwapChain()
         .setMinImageCount(imageCount)
         .setImageFormat(imageFormat.format)
         .setImageColorSpace(imageFormat.colorSpace)
-        .setImageExtent(extent)
+        .setImageExtent(m_swapChainExtent)
         .setImageArrayLayers(1)
         .setImageUsage(vk::ImageUsageFlagBits::eColorAttachment);
 
@@ -144,8 +146,28 @@ void Device::createSwapChain()
         .setPresentMode(presentMode)
         .setClipped(VK_TRUE);
 
-    m_swapchain = m_device->createSwapchainKHRUnique(createInfo);
-    m_swapchainImages = m_device->getSwapchainImagesKHR(m_swapchain.get());
+    m_swapChain = m_device->createSwapchainKHRUnique(createInfo);
+    m_swapChainImages = m_device->getSwapchainImagesKHR(m_swapChain.get());
+}
+
+void Device::createImageViews()
+{
+	m_swapChainImageViews.reserve( m_swapChainImages.size() );
+	for( size_t i = 0; i < m_swapChainImages.size(); i++) {
+		vk::ImageViewCreateInfo createInfo;
+		createInfo.setImage(m_swapChainImages[i])
+				  .setViewType(vk::ImageViewType::e2D)
+				  .setFormat(m_swapChainImageFormat);
+		// createInfo.setComponents(vk::ComponentMapping()); this is set by default
+		vk::ImageSubresourceRange subresoruceRange;
+		subresoruceRange.setBaseMipLevel(0)
+						.setLevelCount(1)
+						.setBaseArrayLayer(0)
+						.setLayerCount(1);
+		createInfo.setSubresourceRange(subresoruceRange);
+
+		m_swapChainImageViews.push_back(m_device->createImageViewUnique(createInfo));
+	}
 }
 
 void Device::initRenderer() {}

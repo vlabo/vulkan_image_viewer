@@ -20,6 +20,8 @@ private:
     bool checkDeviceExtensionSupport(vk::PhysicalDevice& device);
     void createDevice();
     void createSwapChain();
+	void createImageViews();
+
 	void printAvaliableExtensions();
 	void printAvaliableLayers();
 
@@ -32,6 +34,11 @@ private:
     vk::PhysicalDevice m_physicalDevice;
     vk::UniqueDevice m_device;
     vk::UniqueSurfaceKHR m_surface;
-    vk::UniqueSwapchainKHR m_swapchain;
-    std::vector<vk::Image> m_swapchainImages;
+
+    vk::UniqueSwapchainKHR m_swapChain;
+    std::vector<vk::Image> m_swapChainImages;
+	vk::Format m_swapChainImageFormat;
+	vk::Extent2D m_swapChainExtent;
+
+	std::vector<vk::UniqueImageView>	m_swapChainImageViews;
 };
