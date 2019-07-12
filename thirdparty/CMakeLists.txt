@@ -9,3 +9,6 @@ target_link_directories(vulkan_image_viewer PRIVATE "/usr/local/lib")
 elseif(CMAKE_CL_64)
 target_link_directories(vulkan_image_viewer PRIVATE "vulkan/lib/windows")
 endif()
+
+#Google Test
+add_subdirectory(googletest)

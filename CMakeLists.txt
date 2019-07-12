@@ -59,15 +59,8 @@ if(CLANG_TIDY_EXE)
   )
 endif()
 
-include(cmake/googletest.cmake)
-fetch_googletest(
-    ${PROJECT_SOURCE_DIR}/cmake
-    ${PROJECT_BINARY_DIR}/googletest
-    )
-
 # enable testing
 enable_testing()
-
 
 # define tests
 add_subdirectory(tests)
