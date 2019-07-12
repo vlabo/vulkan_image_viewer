@@ -163,6 +163,8 @@ void Device::createImageViews()
         // createInfo.setComponents(vk::ComponentMapping()); this is set by default
         vk::ImageSubresourceRange subresourceRange;
         subresourceRange.setBaseMipLevel(0)
+            .setAspectMask(vk::ImageAspectFlagBits::eColor)
+            .setBaseMipLevel(0)
             .setLevelCount(1)
             .setBaseArrayLayer(0)
             .setLayerCount(1);
@@ -172,7 +174,23 @@ void Device::createImageViews()
     }
 }
 
-void Device::initRenderer() {}
+void Device::createGraphicsPipeline() 
+{
+    auto vertShaderCode = readFile("shaders/vert.spv");
+    auto fragShaderCode = readFile("shaders/frag.spv");
+
+    vk::UniqueShaderModule vertexShader = createShaderModule(vertShaderCode);
+    vk::UniqueShaderModule fragmenShader = createShaderModule(fragShaderCode);
+}
+
+vk::UniqueShaderModule Device::createShaderModule(const std::vector<char>& code) {
+    vk::ShaderModuleCreateInfo createInfo;
+    createInfo.setCodeSize(code.size());
+    createInfo.setPCode(reinterpret_cast<const uint32_t*>(code.data()));
+
+    vk::UniqueShaderModule shaderModule = m_device->createShaderModuleUnique(createInfo);
+    return shaderModule;
+}
 
 void Device::initPhysicalDevice(vk::UniqueInstance& instance)
 {

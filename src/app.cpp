@@ -19,7 +19,7 @@ void App::setup()
     m_device.initLibrary(m_window.getRequiredExtensions() );
     VkSurfaceKHR surface = m_window.createSurface( m_device.getVkInstance() );
     m_device.initDevice( surface );
-    m_device.initRenderer();
+    m_device.createGraphicsPipeline();
 }
 
 void    App::mainLoop()

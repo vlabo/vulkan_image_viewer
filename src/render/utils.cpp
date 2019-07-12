@@ -1,4 +1,5 @@
 #include "utils.h"
+#include <fstream>
 
 QueueFamilyIndices findQueueFamilies(vk::PhysicalDevice device, vk::UniqueSurfaceKHR& surface)
 {
@@ -38,4 +39,19 @@ SwapChainSupportDetails querySwapChainSupport(vk::PhysicalDevice device, vk::Uni
     details.presentModes = device.getSurfacePresentModesKHR(surface.get());
 
     return details;
+}
+
+std::vector<char> readFile(const std::string& filename) {
+    std::ifstream file(filename, std::ios::ate | std::ios::binary);
+
+    if (!file.is_open()) {
+        throw std::runtime_error("failed to open file!");
+    }
+
+    size_t fileSize = (size_t) file.tellg();
+    std::vector<char> buffer(fileSize);
+    file.seekg(0);
+    file.read(buffer.data(), fileSize);
+    file.close();
+    return buffer;
 }

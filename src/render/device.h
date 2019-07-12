@@ -11,7 +11,7 @@ public:
 
     void initLibrary(std::vector<const char*> extensions);
     void initDevice(VkSurfaceKHR surface);
-    void initRenderer();
+    void createGraphicsPipeline();
     VkInstance getVkInstance() const { return m_instance.get(); }
 
 private:
@@ -21,6 +21,8 @@ private:
     void createDevice();
     void createSwapChain();
 	void createImageViews();
+
+    vk::UniqueShaderModule createShaderModule(const std::vector<char>& code);
 
 	void printAvaliableExtensions();
 	void printAvaliableLayers();
