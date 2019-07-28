@@ -181,6 +181,72 @@ void Device::createGraphicsPipeline()
 
     vk::UniqueShaderModule vertexShader = createShaderModule(vertShaderCode);
     vk::UniqueShaderModule fragmenShader = createShaderModule(fragShaderCode);
+
+    vk::VertexInputBindingDescription vertexInputInfo; // TODO: what parameters are needed for the vertex shader?
+
+    vk::PipelineShaderStageCreateInfo vertShaderStageInfo;
+    vertShaderStageInfo.setStage(vk::ShaderStageFlagBits::eVertex);
+    vertShaderStageInfo.setModule(vertexShader.get());
+    vertShaderStageInfo.setPName("main");
+
+    vk::PipelineShaderStageCreateInfo fragShaderStageInfo;
+    vertShaderStageInfo.setStage(vk::ShaderStageFlagBits::eFragment);
+    vertShaderStageInfo.setModule(fragmenShader.get());
+    vertShaderStageInfo.setPName("main");
+
+    vk::PipelineInputAssemblyStateCreateInfo inputAssembly;
+    inputAssembly.setTopology(vk::PrimitiveTopology::eTriangleList);
+    inputAssembly.setPrimitiveRestartEnable(false);
+    
+    vk::Viewport viewport(0, 0, (float) m_swapChainExtent.width, (float) m_swapChainExtent.height, -1.0, 1.0);
+
+    vk::Rect2D scissor(vk::Offset2D(0, 0), m_swapChainExtent);
+
+    vk::PipelineViewportStateCreateInfo viewportStateInfo;
+    viewportStateInfo.setViewportCount(1);
+    viewportStateInfo.setPViewports(&viewport);
+    viewportStateInfo.setScissorCount(1);
+    viewportStateInfo.setPScissors(&scissor);
+
+    vk::PipelineRasterizationStateCreateInfo rasterizationCreateInfo;
+    rasterizationCreateInfo.setDepthClampEnable(false);
+    rasterizationCreateInfo.setRasterizerDiscardEnable(false);
+    rasterizationCreateInfo.setPolygonMode(vk::PolygonMode::eFill);
+    rasterizationCreateInfo.setLineWidth(1.0f);
+    rasterizationCreateInfo.setCullMode(vk::CullModeFlagBits::eBack);
+    rasterizationCreateInfo.setFrontFace(vk::FrontFace::eClockwise);
+
+    rasterizationCreateInfo.setDepthBiasEnable(false);
+    rasterizationCreateInfo.setDepthBiasConstantFactor(0.0f);
+    rasterizationCreateInfo.setDepthBiasClamp(0.0f);
+    rasterizationCreateInfo.setDepthBiasSlopeFactor(0.0f);
+
+
+    vk::PipelineMultisampleStateCreateInfo multisampleCreateInfo;
+    multisampleCreateInfo.setSampleShadingEnable(false);
+    multisampleCreateInfo.setRasterizationSamples(vk::SampleCountFlagBits::e1);
+    multisampleCreateInfo.setMinSampleShading(1.0f);
+    multisampleCreateInfo.setPSampleMask(nullptr);
+    multisampleCreateInfo.setAlphaToCoverageEnable(false);
+    multisampleCreateInfo.setAlphaToOneEnable(false);
+
+    vk::PipelineColorBlendAttachmentState colorBlendAttachment;
+    colorBlendAttachment.setColorWriteMask(vk::ColorComponentFlagBits::eR | vk::ColorComponentFlagBits::eG | vk::ColorComponentFlagBits::eB | vk::ColorComponentFlagBits::eA);
+    colorBlendAttachment.setBlendEnable(false);
+    colorBlendAttachment.setSrcColorBlendFactor(vk::BlendFactor::eOne);
+    colorBlendAttachment.setDstColorBlendFactor(vk::BlendFactor::eZero);
+    colorBlendAttachment.setColorBlendOp(vk::BlendOp::eAdd);
+    colorBlendAttachment.setSrcAlphaBlendFactor(vk::BlendFactor::eOne);
+    colorBlendAttachment.setDstAlphaBlendFactor(vk::BlendFactor::eZero);
+    colorBlendAttachment.setAlphaBlendOp(vk::BlendOp::eAdd);
+
+    vk::PipelineColorBlendStateCreateInfo colorBlendCreateInfo;
+    colorBlendCreateInfo.setLogicOpEnable(false);
+    colorBlendCreateInfo.setLogicOp(vk::LogicOp::eCopy);
+    colorBlendCreateInfo.setAttachmentCount(1);
+    colorBlendCreateInfo.setPAttachments(&colorBlendAttachment);
+
+    vk::PipelineShaderStageCreateInfo shaderStages[] = {vertShaderStageInfo, fragShaderStageInfo};
 }
 
 vk::UniqueShaderModule Device::createShaderModule(const std::vector<char>& code) {
