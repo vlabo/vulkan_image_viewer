@@ -176,29 +176,37 @@ void Device::createImageViews()
 
 void Device::createGraphicsPipeline() 
 {
+	createRenderPass();
+
     auto vertShaderCode = readFile("shaders/vert.spv");
     auto fragShaderCode = readFile("shaders/frag.spv");
 
-    vk::UniqueShaderModule vertexShader = createShaderModule(vertShaderCode);
-    vk::UniqueShaderModule fragmenShader = createShaderModule(fragShaderCode);
+    vk::ShaderModule vertexShader = createShaderModule(vertShaderCode);
+    vk::ShaderModule fragmenShader = createShaderModule(fragShaderCode);
 
-    vk::VertexInputBindingDescription vertexInputInfo; // TODO: what parameters are needed for the vertex shader?
+    //vk::VertexInputBindingDescription vertexInputInfo; // TODO: what parameters are needed for the vertex shader?
+
+	vk::PipelineVertexInputStateCreateInfo vertexInputInfo;
+	vertexInputInfo.setVertexBindingDescriptionCount(0);
+	vertexInputInfo.setVertexAttributeDescriptionCount(0);
 
     vk::PipelineShaderStageCreateInfo vertShaderStageInfo;
     vertShaderStageInfo.setStage(vk::ShaderStageFlagBits::eVertex);
-    vertShaderStageInfo.setModule(vertexShader.get());
+    vertShaderStageInfo.setModule(vertexShader);
     vertShaderStageInfo.setPName("main");
 
     vk::PipelineShaderStageCreateInfo fragShaderStageInfo;
     vertShaderStageInfo.setStage(vk::ShaderStageFlagBits::eFragment);
-    vertShaderStageInfo.setModule(fragmenShader.get());
+    vertShaderStageInfo.setModule(fragmenShader);
     vertShaderStageInfo.setPName("main");
+
+	vk::PipelineShaderStageCreateInfo shaderStages[] = {vertShaderStageInfo, fragShaderStageInfo};
 
     vk::PipelineInputAssemblyStateCreateInfo inputAssembly;
     inputAssembly.setTopology(vk::PrimitiveTopology::eTriangleList);
     inputAssembly.setPrimitiveRestartEnable(false);
     
-    vk::Viewport viewport(0, 0, (float) m_swapChainExtent.width, (float) m_swapChainExtent.height, -1.0, 1.0);
+    vk::Viewport viewport(0, 0, (float) m_swapChainExtent.width, (float) m_swapChainExtent.height, 0.0f, 1.0f);
 
     vk::Rect2D scissor(vk::Offset2D(0, 0), m_swapChainExtent);
 
@@ -215,61 +223,72 @@ void Device::createGraphicsPipeline()
     rasterizationCreateInfo.setLineWidth(1.0f);
     rasterizationCreateInfo.setCullMode(vk::CullModeFlagBits::eBack);
     rasterizationCreateInfo.setFrontFace(vk::FrontFace::eClockwise);
-
     rasterizationCreateInfo.setDepthBiasEnable(false);
     rasterizationCreateInfo.setDepthBiasConstantFactor(0.0f);
     rasterizationCreateInfo.setDepthBiasClamp(0.0f);
     rasterizationCreateInfo.setDepthBiasSlopeFactor(0.0f);
 
-
     vk::PipelineMultisampleStateCreateInfo multisampleCreateInfo;
     multisampleCreateInfo.setSampleShadingEnable(false);
     multisampleCreateInfo.setRasterizationSamples(vk::SampleCountFlagBits::e1);
-    multisampleCreateInfo.setMinSampleShading(1.0f);
-    multisampleCreateInfo.setPSampleMask(nullptr);
-    multisampleCreateInfo.setAlphaToCoverageEnable(false);
-    multisampleCreateInfo.setAlphaToOneEnable(false);
 
     vk::PipelineColorBlendAttachmentState colorBlendAttachment;
     colorBlendAttachment.setColorWriteMask(vk::ColorComponentFlagBits::eR | vk::ColorComponentFlagBits::eG | vk::ColorComponentFlagBits::eB | vk::ColorComponentFlagBits::eA);
     colorBlendAttachment.setBlendEnable(false);
-    colorBlendAttachment.setSrcColorBlendFactor(vk::BlendFactor::eOne);
-    colorBlendAttachment.setDstColorBlendFactor(vk::BlendFactor::eZero);
-    colorBlendAttachment.setColorBlendOp(vk::BlendOp::eAdd);
-    colorBlendAttachment.setSrcAlphaBlendFactor(vk::BlendFactor::eOne);
-    colorBlendAttachment.setDstAlphaBlendFactor(vk::BlendFactor::eZero);
-    colorBlendAttachment.setAlphaBlendOp(vk::BlendOp::eAdd);
 
     vk::PipelineColorBlendStateCreateInfo colorBlendCreateInfo;
     colorBlendCreateInfo.setLogicOpEnable(false);
     colorBlendCreateInfo.setLogicOp(vk::LogicOp::eCopy);
     colorBlendCreateInfo.setAttachmentCount(1);
     colorBlendCreateInfo.setPAttachments(&colorBlendAttachment);
+	colorBlendCreateInfo.setBlendConstants({0.0f, 0.0f, 0.0f, 0.0f});
 
-	vk::DynamicState dynamicStates[] = { vk::DynamicState::eViewport, vk::DynamicState::eLineWidth };
+	//vk::DynamicState dynamicStates[] = { vk::DynamicState::eViewport, vk::DynamicState::eLineWidth };
 
-	vk::PipelineDynamicStateCreateInfo dynamicState;
-	dynamicState.setDynamicStateCount(2);
-	dynamicState.setPDynamicStates(dynamicStates);
+	//vk::PipelineDynamicStateCreateInfo dynamicState;
+	//dynamicState.setDynamicStateCount(2);
+	//dynamicState.setPDynamicStates(dynamicStates);
 
 	vk::PipelineLayoutCreateInfo pipelineLayoutInfo;
 	pipelineLayoutInfo.setSetLayoutCount(0);
-	pipelineLayoutInfo.setPSetLayouts(nullptr);
 	pipelineLayoutInfo.setPushConstantRangeCount(0);
-	pipelineLayoutInfo.setPPushConstantRanges(nullptr);
 
 	m_pipelineLayout = m_device->createPipelineLayoutUnique(pipelineLayoutInfo);
 
-    vk::PipelineShaderStageCreateInfo shaderStages[] = {vertShaderStageInfo, fragShaderStageInfo};
+	vk::GraphicsPipelineCreateInfo pipelineInfo;
+	pipelineInfo.setStageCount(2);
+	pipelineInfo.setPStages(shaderStages);
+	/*pipelineInfo.setPVertexInputState(&vertexInputInfo);
+	pipelineInfo.setPInputAssemblyState(&inputAssembly);
+	pipelineInfo.setPViewportState(&viewportStateInfo);
+	pipelineInfo.setPRasterizationState(&rasterizationCreateInfo);
+	pipelineInfo.setPMultisampleState(&multisampleCreateInfo);
+	//pipelineInfo.setPDepthStencilState(nullptr);
+	pipelineInfo.setPColorBlendState(&colorBlendCreateInfo);
+	//pipelineInfo.setPDynamicState(&dynamicState);
+	pipelineInfo.setLayout(m_pipelineLayout.get());
+	pipelineInfo.setRenderPass(m_renderPass.get());
+	pipelineInfo.setSubpass(0);
+	pipelineInfo.setBasePipelineHandle(nullptr);
+	//pipelineInfo.setBasePipelineIndex(-1);*/
+
+	//m_pipeline = m_device->createGraphicsPipelines(nullptr, {pipelineInfo})[0];
+	//m_pipeline = m_device->createGraphicsPipelineUnique(nullptr, pipelineInfo);
+	std::cout << "IDK\n";
+	VkPipeline graphicsPipeline;
+	if (vkCreateGraphicsPipelines(m_device.get(), VK_NULL_HANDLE, 1, reinterpret_cast<const VkGraphicsPipelineCreateInfo*>(&pipelineInfo), nullptr, &graphicsPipeline) != VK_SUCCESS) {
+            throw std::runtime_error("failed to create graphics pipeline!");
+    }
+	std::cout << "IDK2\n";
+
 }
 
-vk::UniqueShaderModule Device::createShaderModule(const std::vector<char>& code) {
+vk::ShaderModule Device::createShaderModule(const std::vector<char>& code) {
     vk::ShaderModuleCreateInfo createInfo;
     createInfo.setCodeSize(code.size());
     createInfo.setPCode(reinterpret_cast<const uint32_t*>(code.data()));
 
-    vk::UniqueShaderModule shaderModule = m_device->createShaderModuleUnique(createInfo);
-    return shaderModule;
+    return m_device->createShaderModule(createInfo);
 }
 
 void Device::initPhysicalDevice(vk::UniqueInstance& instance)
@@ -295,7 +314,7 @@ void Device::createRenderPass()
 	colorAttachment.setLoadOp(vk::AttachmentLoadOp::eClear);
 	colorAttachment.setStoreOp(vk::AttachmentStoreOp::eStore);
 	colorAttachment.setStencilLoadOp(vk::AttachmentLoadOp::eDontCare);
-	colorAttachment.setStoreOp(vk::AttachmentStoreOp::eStore);
+	colorAttachment.setStencilStoreOp(vk::AttachmentStoreOp::eDontCare);
 	colorAttachment.setInitialLayout(vk::ImageLayout::eUndefined);
 	colorAttachment.setFinalLayout(vk::ImageLayout::ePresentSrcKHR);
 

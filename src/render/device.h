@@ -23,7 +23,7 @@ private:
 	void createImageViews();
 	void createRenderPass();
 
-    vk::UniqueShaderModule createShaderModule(const std::vector<char>& code);
+    vk::ShaderModule createShaderModule(const std::vector<char>& code);
 
 	void printAvaliableExtensions();
 	void printAvaliableLayers();
@@ -45,6 +45,7 @@ private:
 
 	vk::UniquePipelineLayout m_pipelineLayout;
 	vk::UniqueRenderPass m_renderPass;
+	vk::UniquePipeline m_pipeline;
 
 	std::vector<vk::UniqueImageView>	m_swapChainImageViews;
 };
