@@ -246,6 +246,20 @@ void Device::createGraphicsPipeline()
     colorBlendCreateInfo.setAttachmentCount(1);
     colorBlendCreateInfo.setPAttachments(&colorBlendAttachment);
 
+	vk::DynamicState dynamicStates[] = { vk::DynamicState::eViewport, vk::DynamicState::eLineWidth };
+
+	vk::PipelineDynamicStateCreateInfo dynamicState;
+	dynamicState.setDynamicStateCount(2);
+	dynamicState.setPDynamicStates(dynamicStates);
+
+	vk::PipelineLayoutCreateInfo pipelineLayoutInfo;
+	pipelineLayoutInfo.setSetLayoutCount(0);
+	pipelineLayoutInfo.setPSetLayouts(nullptr);
+	pipelineLayoutInfo.setPushConstantRangeCount(0);
+	pipelineLayoutInfo.setPPushConstantRanges(nullptr);
+
+	m_pipelineLayout = m_device->createPipelineLayoutUnique(pipelineLayoutInfo);
+
     vk::PipelineShaderStageCreateInfo shaderStages[] = {vertShaderStageInfo, fragShaderStageInfo};
 }
 
@@ -272,6 +286,35 @@ void Device::initPhysicalDevice(vk::UniqueInstance& instance)
     if (!isDeviceSelected) {
         throw std::runtime_error("initPhysicalDevice: Unable to select physical device.");
     }
+}
+
+void Device::createRenderPass()
+{
+	vk::AttachmentDescription colorAttachment;
+	colorAttachment.setSamples(vk::SampleCountFlagBits::e1);
+	colorAttachment.setLoadOp(vk::AttachmentLoadOp::eClear);
+	colorAttachment.setStoreOp(vk::AttachmentStoreOp::eStore);
+	colorAttachment.setStencilLoadOp(vk::AttachmentLoadOp::eDontCare);
+	colorAttachment.setStoreOp(vk::AttachmentStoreOp::eStore);
+	colorAttachment.setInitialLayout(vk::ImageLayout::eUndefined);
+	colorAttachment.setFinalLayout(vk::ImageLayout::ePresentSrcKHR);
+
+	vk::AttachmentReference colorAttachmentRef;
+	colorAttachmentRef.setAttachment(0);
+	colorAttachmentRef.setLayout(vk::ImageLayout::eColorAttachmentOptimal);
+
+	vk::SubpassDescription subpass;
+	subpass.setPipelineBindPoint(vk::PipelineBindPoint::eGraphics);
+	subpass.setColorAttachmentCount(1);
+	subpass.setPColorAttachments(&colorAttachmentRef);
+
+	vk::RenderPassCreateInfo renderPassInfo;
+	renderPassInfo.setAttachmentCount(1);
+	renderPassInfo.setPAttachments(&colorAttachment);
+	renderPassInfo.setSubpassCount(1);
+	renderPassInfo.setPSubpasses(&subpass);
+
+	m_renderPass = m_device->createRenderPassUnique(renderPassInfo);
 }
 
 bool Device::isPhysicalDeviceSuitable(vk::PhysicalDevice& device)

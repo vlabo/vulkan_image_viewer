@@ -21,6 +21,7 @@ private:
     void createDevice();
     void createSwapChain();
 	void createImageViews();
+	void createRenderPass();
 
     vk::UniqueShaderModule createShaderModule(const std::vector<char>& code);
 
@@ -41,6 +42,9 @@ private:
     std::vector<vk::Image> m_swapChainImages;
 	vk::Format m_swapChainImageFormat;
 	vk::Extent2D m_swapChainExtent;
+
+	vk::UniquePipelineLayout m_pipelineLayout;
+	vk::UniqueRenderPass m_renderPass;
 
 	std::vector<vk::UniqueImageView>	m_swapChainImageViews;
 };
