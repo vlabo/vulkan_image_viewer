@@ -181,8 +181,8 @@ void Device::createGraphicsPipeline()
     auto vertShaderCode = readFile("shaders/vert.spv");
     auto fragShaderCode = readFile("shaders/frag.spv");
 
-    vk::ShaderModule vertexShader = createShaderModule(vertShaderCode);
-    vk::ShaderModule fragmenShader = createShaderModule(fragShaderCode);
+    vk::UniqueShaderModule vertexShader = createShaderModule(vertShaderCode);
+    vk::UniqueShaderModule fragmenShader = createShaderModule(fragShaderCode);
 
     //vk::VertexInputBindingDescription vertexInputInfo; // TODO: what parameters are needed for the vertex shader?
 
@@ -192,15 +192,15 @@ void Device::createGraphicsPipeline()
 
     vk::PipelineShaderStageCreateInfo vertShaderStageInfo;
     vertShaderStageInfo.setStage(vk::ShaderStageFlagBits::eVertex);
-    vertShaderStageInfo.setModule(vertexShader);
+    vertShaderStageInfo.setModule(vertexShader.get());
     vertShaderStageInfo.setPName("main");
 
     vk::PipelineShaderStageCreateInfo fragShaderStageInfo;
-    vertShaderStageInfo.setStage(vk::ShaderStageFlagBits::eFragment);
-    vertShaderStageInfo.setModule(fragmenShader);
-    vertShaderStageInfo.setPName("main");
+    fragShaderStageInfo.setStage(vk::ShaderStageFlagBits::eFragment);
+    fragShaderStageInfo.setModule(fragmenShader.get());
+    fragShaderStageInfo.setPName("main");
 
-	vk::PipelineShaderStageCreateInfo shaderStages[] = {vertShaderStageInfo, fragShaderStageInfo};
+	std::array<vk::PipelineShaderStageCreateInfo, 2> shaderStages = { vertShaderStageInfo, fragShaderStageInfo };
 
     vk::PipelineInputAssemblyStateCreateInfo inputAssembly;
     inputAssembly.setTopology(vk::PrimitiveTopology::eTriangleList);
@@ -243,11 +243,11 @@ void Device::createGraphicsPipeline()
     colorBlendCreateInfo.setPAttachments(&colorBlendAttachment);
 	colorBlendCreateInfo.setBlendConstants({0.0f, 0.0f, 0.0f, 0.0f});
 
-	//vk::DynamicState dynamicStates[] = { vk::DynamicState::eViewport, vk::DynamicState::eLineWidth };
+	vk::DynamicState dynamicStates[] = { vk::DynamicState::eViewport, vk::DynamicState::eLineWidth };
 
-	//vk::PipelineDynamicStateCreateInfo dynamicState;
-	//dynamicState.setDynamicStateCount(2);
-	//dynamicState.setPDynamicStates(dynamicStates);
+	vk::PipelineDynamicStateCreateInfo dynamicState;
+	dynamicState.setDynamicStateCount(2);
+	dynamicState.setPDynamicStates(dynamicStates);
 
 	vk::PipelineLayoutCreateInfo pipelineLayoutInfo;
 	pipelineLayoutInfo.setSetLayoutCount(0);
@@ -256,39 +256,31 @@ void Device::createGraphicsPipeline()
 	m_pipelineLayout = m_device->createPipelineLayoutUnique(pipelineLayoutInfo);
 
 	vk::GraphicsPipelineCreateInfo pipelineInfo;
-	pipelineInfo.setStageCount(2);
-	pipelineInfo.setPStages(shaderStages);
-	/*pipelineInfo.setPVertexInputState(&vertexInputInfo);
+	pipelineInfo.setStageCount((uint32_t)shaderStages.size());
+	pipelineInfo.setPStages(shaderStages.data());
+	pipelineInfo.setPVertexInputState(&vertexInputInfo);
 	pipelineInfo.setPInputAssemblyState(&inputAssembly);
 	pipelineInfo.setPViewportState(&viewportStateInfo);
 	pipelineInfo.setPRasterizationState(&rasterizationCreateInfo);
 	pipelineInfo.setPMultisampleState(&multisampleCreateInfo);
-	//pipelineInfo.setPDepthStencilState(nullptr);
+	pipelineInfo.setPDepthStencilState(nullptr);
 	pipelineInfo.setPColorBlendState(&colorBlendCreateInfo);
-	//pipelineInfo.setPDynamicState(&dynamicState);
+	pipelineInfo.setPDynamicState(&dynamicState);
 	pipelineInfo.setLayout(m_pipelineLayout.get());
 	pipelineInfo.setRenderPass(m_renderPass.get());
 	pipelineInfo.setSubpass(0);
 	pipelineInfo.setBasePipelineHandle(nullptr);
-	//pipelineInfo.setBasePipelineIndex(-1);*/
+	pipelineInfo.setBasePipelineIndex(-1);
 
-	//m_pipeline = m_device->createGraphicsPipelines(nullptr, {pipelineInfo})[0];
-	//m_pipeline = m_device->createGraphicsPipelineUnique(nullptr, pipelineInfo);
-	std::cout << "IDK\n";
-	VkPipeline graphicsPipeline;
-	if (vkCreateGraphicsPipelines(m_device.get(), VK_NULL_HANDLE, 1, reinterpret_cast<const VkGraphicsPipelineCreateInfo*>(&pipelineInfo), nullptr, &graphicsPipeline) != VK_SUCCESS) {
-            throw std::runtime_error("failed to create graphics pipeline!");
-    }
-	std::cout << "IDK2\n";
-
+	m_pipeline = m_device->createGraphicsPipelineUnique(nullptr, pipelineInfo);
 }
 
-vk::ShaderModule Device::createShaderModule(const std::vector<char>& code) {
+vk::UniqueShaderModule Device::createShaderModule(const std::vector<char>& code) {
     vk::ShaderModuleCreateInfo createInfo;
     createInfo.setCodeSize(code.size());
     createInfo.setPCode(reinterpret_cast<const uint32_t*>(code.data()));
 
-    return m_device->createShaderModule(createInfo);
+    return m_device->createShaderModuleUnique(createInfo);
 }
 
 void Device::initPhysicalDevice(vk::UniqueInstance& instance)

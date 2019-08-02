@@ -23,7 +23,7 @@ private:
 	void createImageViews();
 	void createRenderPass();
 
-    vk::ShaderModule createShaderModule(const std::vector<char>& code);
+    vk::UniqueShaderModule createShaderModule(const std::vector<char>& code);
 
 	void printAvaliableExtensions();
 	void printAvaliableLayers();
