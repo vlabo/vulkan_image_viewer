@@ -12,6 +12,7 @@ public:
     void initLibrary(std::vector<const char*> extensions);
     void initDevice(VkSurfaceKHR surface);
     void createGraphicsPipeline();
+    void draw();
     VkInstance getVkInstance() const { return m_instance.get(); }
 
 private:
@@ -22,6 +23,10 @@ private:
     void createSwapChain();
 	void createImageViews();
 	void createRenderPass();
+    void createFrameBuffers();
+    void createCommandPool();
+    void createCommandBuffers();
+    void createSemaphore();
 
     vk::UniqueShaderModule createShaderModule(const std::vector<char>& code);
 
@@ -38,6 +43,9 @@ private:
     vk::UniqueDevice m_device;
     vk::UniqueSurfaceKHR m_surface;
 
+    vk::Queue m_graphicsQueue;
+    vk::Queue m_presentQueue;
+
     vk::UniqueSwapchainKHR m_swapChain;
     std::vector<vk::Image> m_swapChainImages;
 	vk::Format m_swapChainImageFormat;
@@ -48,4 +56,11 @@ private:
 	vk::UniquePipeline m_pipeline;
 
 	std::vector<vk::UniqueImageView>	m_swapChainImageViews;
+    std::vector<vk::UniqueFramebuffer>  m_swapChainFramebuffers;
+
+    vk::UniqueCommandPool m_commandPool;
+    std::vector<vk::UniqueCommandBuffer> m_commandBuffers;
+
+    vk::UniqueSemaphore m_imageAvailableSemaphore;
+    vk::UniqueSemaphore m_renderFinishedSemaphore;
 };

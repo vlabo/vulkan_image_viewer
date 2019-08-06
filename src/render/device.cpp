@@ -273,6 +273,11 @@ void Device::createGraphicsPipeline()
         .setBasePipelineIndex(-1);
 
     m_pipeline = m_device->createGraphicsPipelineUnique(nullptr, pipelineInfo);
+
+    createFrameBuffers();
+    createCommandPool();
+    createCommandBuffers();
+    createSemaphore();
 }
 
 vk::UniqueShaderModule Device::createShaderModule(const std::vector<char>& code)
@@ -321,11 +326,21 @@ void Device::createRenderPass()
         .setColorAttachmentCount(1)
         .setPColorAttachments(&colorAttachmentRef);
 
+    vk::SubpassDependency dependency;
+    dependency.setSrcSubpass(VK_SUBPASS_EXTERNAL);
+    dependency.setDstSubpass(0);
+    dependency.setSrcStageMask(vk::PipelineStageFlagBits::eColorAttachmentOutput);
+    //dependency.setSrcAccessMask(0);
+    dependency.setDstStageMask(vk::PipelineStageFlagBits::eColorAttachmentOutput);
+    dependency.setDstAccessMask(vk::AccessFlagBits::eColorAttachmentRead | vk::AccessFlagBits::eColorAttachmentWrite);
+
     vk::RenderPassCreateInfo renderPassInfo;
     renderPassInfo.setAttachmentCount(1)
         .setPAttachments(&colorAttachment)
         .setSubpassCount(1)
-        .setPSubpasses(&subpass);
+        .setPSubpasses(&subpass)
+        .setDependencyCount(1)
+        .setPDependencies(&dependency);
 
     m_renderPass = m_device->createRenderPassUnique(renderPassInfo);
 }
@@ -387,4 +402,100 @@ void Device::createDevice()
 #endif
 
     m_device = m_physicalDevice.createDeviceUnique(createInfo);
+    m_graphicsQueue = m_device->getQueue(indices.graphicsFamily.value(), 0);
+    m_presentQueue = m_device->getQueue(indices.presentFamily.value(), 0);
+}
+
+void Device::createFrameBuffers() {
+    m_swapChainFramebuffers.reserve(m_swapChainImageViews.size());
+    for(size_t i = 0; i < m_swapChainImageViews.size(); i++) {
+        vk::UniqueImageView& imageView = m_swapChainImageViews[i];
+        vk::FramebufferCreateInfo framebufferInfo;
+        framebufferInfo.setRenderPass(m_renderPass.get())
+                        .setAttachmentCount(1)
+                        .setPAttachments(&(imageView.get()))
+                        .setWidth(m_swapChainExtent.width)
+                        .setHeight(m_swapChainExtent.height)
+                        .setLayers(1);
+        m_swapChainFramebuffers.push_back(m_device->createFramebufferUnique(framebufferInfo));
+    }
+}
+
+void Device::createCommandPool() {
+    QueueFamilyIndices queueFamilyIndices = findQueueFamilies(m_physicalDevice, m_surface);
+    vk::CommandPoolCreateInfo poolInfo;
+    poolInfo.setQueueFamilyIndex(queueFamilyIndices.graphicsFamily.value());
+
+    m_commandPool = m_device->createCommandPoolUnique(poolInfo);
+}
+
+void Device::createCommandBuffers() {
+    vk::CommandBufferAllocateInfo allocateInfo;
+    allocateInfo.setCommandPool(m_commandPool.get())
+                .setLevel(vk::CommandBufferLevel::ePrimary)
+                .setCommandBufferCount(m_swapChainFramebuffers.size());
+
+    m_commandBuffers = m_device->allocateCommandBuffersUnique(allocateInfo);
+
+    for(int i = 0; i < m_commandBuffers.size(); i++) {
+        vk::CommandBuffer& commandBuffer = m_commandBuffers[i].get();
+        vk::Framebuffer& framebuffer = m_swapChainFramebuffers[i].get();
+        vk::CommandBufferBeginInfo info;
+        commandBuffer.begin(&info);
+        vk::Rect2D renderArea(vk::Offset2D(0, 0), m_swapChainExtent);
+        vk::ClearValue clearValue(std::array<float,4>{0.0f, 0.0f, 0.0f, 1.0f});
+        vk::RenderPassBeginInfo renderPassBeginInfo;
+        renderPassBeginInfo.setRenderPass(m_renderPass.get())
+                           .setFramebuffer(framebuffer)
+                           .setRenderArea(renderArea)
+                           .setClearValueCount(1)
+                           .setPClearValues(&clearValue);
+
+        commandBuffer.beginRenderPass(renderPassBeginInfo, vk::SubpassContents::eInline);
+        {
+            commandBuffer.bindPipeline(vk::PipelineBindPoint::eGraphics, m_pipeline.get());
+            commandBuffer.draw(3, 1, 0, 0);
+        }
+        commandBuffer.endRenderPass();
+
+        commandBuffer.end();
+    }
+}
+
+void Device::createSemaphore() {
+    vk::SemaphoreCreateInfo semaphoreCreateInfo;
+    m_imageAvailableSemaphore = m_device->createSemaphoreUnique(semaphoreCreateInfo);
+    m_renderFinishedSemaphore = m_device->createSemaphoreUnique(semaphoreCreateInfo);
+}
+
+void Device::draw() {
+    uint32_t imageIndex = m_device->acquireNextImageKHR(m_swapChain.get(), std::numeric_limits<uint64_t>::max(), m_imageAvailableSemaphore.get(), nullptr).value;
+
+    vk::SubmitInfo submitInfo;
+    std::array<vk::Semaphore, 1> waitSemaphores = {m_imageAvailableSemaphore.get()}; 
+    std::array<vk::PipelineStageFlags, 1> waitStages = {vk::PipelineStageFlagBits::eColorAttachmentOutput};
+    submitInfo.setWaitSemaphoreCount(waitSemaphores.size());
+    submitInfo.setPWaitSemaphores(waitSemaphores.data());
+    submitInfo.setPWaitDstStageMask(waitStages.data());
+    submitInfo.setCommandBufferCount(1);
+    submitInfo.setPCommandBuffers(&m_commandBuffers[imageIndex].get());
+
+    std::array<vk::Semaphore, 1> signalSemaphores = {m_renderFinishedSemaphore.get()};
+    submitInfo.setSignalSemaphoreCount(signalSemaphores.size());
+    submitInfo.setPSignalSemaphores(signalSemaphores.data());
+
+    m_graphicsQueue.submit(1, &submitInfo, nullptr);
+
+    vk::PresentInfoKHR presentInfo;
+    presentInfo.setWaitSemaphoreCount(signalSemaphores.size());
+    presentInfo.setPWaitSemaphores(signalSemaphores.data());
+
+    std::array<vk::SwapchainKHR, 1> swapchains = {m_swapChain.get()};
+    presentInfo.setSwapchainCount(swapchains.size());
+    presentInfo.setPSwapchains(swapchains.data());
+    presentInfo.setPImageIndices(&imageIndex);
+    presentInfo.setPResults(nullptr);
+
+    m_presentQueue.presentKHR(&presentInfo);
+
 }

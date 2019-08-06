@@ -27,6 +27,7 @@ void    App::mainLoop()
     while( m_window.isOpen() )
     {
         m_window.processEvents();
+        m_device.draw();
     }
 }
 
