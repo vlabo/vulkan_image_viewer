@@ -13,6 +13,8 @@ public:
     void initDevice(VkSurfaceKHR surface);
     void createGraphicsPipeline();
     void draw();
+    void cleanup();
+
     VkInstance getVkInstance() const { return m_instance.get(); }
 
 private:

@@ -33,5 +33,5 @@ void    App::mainLoop()
 
 void    App::cleanup()
 {
-
+    m_device.cleanup();
 }

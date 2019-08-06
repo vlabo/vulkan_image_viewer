@@ -497,5 +497,9 @@ void Device::draw() {
     presentInfo.setPResults(nullptr);
 
     m_presentQueue.presentKHR(&presentInfo);
+    m_presentQueue.waitIdle();
+}
 
+void Device::cleanup() {
+    m_device->waitIdle();
 }
